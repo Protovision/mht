@@ -22,9 +22,9 @@ struct mht {
 	size_t		capacity;
 	size_t		size;
 	struct mht_ent	**table;
-	mht_free_fn	*free;
-	mht_hash_fn	*hash;
-	mht_equals_fn	*equals;
+	mht_free_fn	*free_fn;
+	mht_hash_fn	*hash_fn;
+	mht_equals_fn	*equals_fn;
 };
 
 #define mht_size(T)	((T)->size)

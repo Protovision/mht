@@ -14,9 +14,9 @@ struct mht *mht_new( size_t initial_capacity, mht_free_fn *free_fn, mht_hash_fn 
 	t->load_factor = 0.66;
 	t->capacity = initial_capacity;
 	t->size = 0;
-	t->free = free_fn;
-	t->hash = hash_fn;
-	t->equals = equals_fn;
+	t->free_fn = free_fn;
+	t->hash_fn = hash_fn;
+	t->equals_fn = equals_fn;
 	return t;
 }
 
@@ -74,7 +74,7 @@ static struct mht_ent *mht_search_bucket( struct mht *t, size_t idx, void *k )
 	struct mht_ent *e;
 
 	for ( e = t->table[idx]; e; e = e->next ) {
-		if ( t->equals(e->k, k) ) return e;
+		if ( t->equals_fn(e->k, k) ) return e;
 	}
 	return 0;
 }
@@ -84,7 +84,7 @@ int mht_get( struct mht *t, void *k, void **v )
 	size_t idx;
 	struct mht_ent *e;
 
-	idx = t->hash(k) % t->capacity;
+	idx = t->hash_fn(k) % t->capacity;
 	e = mht_search_bucket( t, idx, k );
 	if ( !e ) return -1;
 	*v = e->v;
@@ -99,11 +99,11 @@ int mht_set( struct mht *t, void *k, void *v, int overwrite )
 	if ( t->size >= t->capacity * t->load_factor ) {
 		if ( mht_rehash(t, t->capacity * 2) ) return -1;
 	}
-	idx = t->hash(k) % t->capacity;
+	idx = t->hash_fn(k) % t->capacity;
 	e = mht_search_bucket( t, idx, k );
 	if ( e ) {
 		if ( !overwrite ) return 0;
-		if ( t->free ) t->free( e->k, e->v );
+		if ( t->free_fn ) t->free_fn( e->k, e->v );
 		e->k = k;
 		e->v = v;
 		return 0;
@@ -127,10 +127,10 @@ void mht_delete( struct mht *t, void *k )
 	size_t idx;
 	struct mht_ent *e;
 
-	idx = t->hash(k) % t->capacity;
+	idx = t->hash_fn(k) % t->capacity;
 	e = mht_search_bucket( t, idx, k );
 	if ( !e ) return;
-	if ( t->free ) t->free( e->k, e->v );
+	if ( t->free_fn ) t->free_fn( e->k, e->v );
 	if ( e->next ) e->next->prev = e->prev;
 	if ( e->prev ) e->prev->next = e->next;
 	else t->table[idx] = e->next;
@@ -153,9 +153,9 @@ int mht_rehash( struct mht *t, size_t new_capacity )
 	nt->load_factor = 0.66;
 	nt->capacity = new_capacity;
 	nt->size = 0;
-	nt->free = t->free;
-	nt->hash = t->hash;
-	nt->equals = t->equals;
+	nt->free_fn = t->free_fn;
+	nt->hash_fn = t->hash_fn;
+	nt->equals_fn = t->equals_fn;
 	for ( i = 0; i < t->capacity; ++i ) {
 		if ( !t->table[i] ) continue;
 		for ( e = t->table[i]; e; e = e->next ) {
@@ -178,7 +178,7 @@ void mht_free( struct mht *t )
 		if ( !t->table[i] ) continue;
 		for ( e = t->table[i]; e; e = next_e ) {
 			next_e = e->next;
-			if ( t->free ) t->free( e->k, e->v );
+			if ( t->free_fn ) t->free_fn( e->k, e->v );
 			free( e );
 		}
 	}
