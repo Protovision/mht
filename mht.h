@@ -35,7 +35,7 @@ struct mht_ent {
 };
 
 typedef void (mht_free_fn)(void *k, void *v);
-typedef unsigned long int (mht_hash_fn)( const void *k );
+typedef unsigned long int (mht_hash_fn)(const void *k);
 typedef int (mht_equals_fn)(const void *k1, const void *k2);
 
 struct mht {
