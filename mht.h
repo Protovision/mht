@@ -38,21 +38,24 @@ typedef void (mht_free_fn)(void *k, void *v);
 typedef unsigned long int (mht_hash_fn)(const void *k);
 typedef int (mht_equals_fn)(const void *k1, const void *k2);
 
+struct mht_hooks {
+	mht_free_fn *free;
+	mht_hash_fn *hash;
+	mht_equals_fn *equals;
+};
+
 struct mht {
 	double load_factor;
 	size_t capacity;
 	size_t size;
 	struct mht_ent **table;
-	mht_free_fn *free_fn;
-	mht_hash_fn *hash_fn;
-	mht_equals_fn *equals_fn;
+	struct mht_hooks hooks;
 };
 
 #define mht_size(T)	((T)->size)
 #define mht_capacity(T)	((T)->capacity)
 
-struct mht *mht_new(size_t initial_capacity, mht_free_fn *free_fn,
-	mht_hash_fn *hash_fn, mht_equals_fn *equals_fn);
+struct mht *mht_new(size_t initial_capacity, const struct mht_hooks *hooks);
 struct mht *mht_strk_new(size_t initial_capacity, mht_free_fn *free_fn);
 struct mht *mht_ptrk_new(size_t initial_capacity, mht_free_fn *free_fn);
 void mht_free(struct mht *t);

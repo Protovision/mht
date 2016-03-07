@@ -21,8 +21,7 @@
  ****************************************************************************/
 #include "mht.h"
 
-struct mht *mht_new(size_t initial_capacity, mht_free_fn *free_fn,
-	mht_hash_fn *hash_fn, mht_equals_fn *equals_fn)
+struct mht *mht_new(size_t initial_capacity, const struct mht_hooks *hooks)
 {
 	struct mht *t;
 
@@ -37,9 +36,7 @@ struct mht *mht_new(size_t initial_capacity, mht_free_fn *free_fn,
 	t->load_factor = 0.66;
 	t->capacity = initial_capacity;
 	t->size = 0;
-	t->free_fn = free_fn;
-	t->hash_fn = hash_fn;
-	t->equals_fn = equals_fn;
+	t->hooks = *hooks;
 	return t;
 }
 
@@ -85,14 +82,22 @@ static int mht_ptrk_equals(const void *k1, const void *k2)
 
 struct mht *mht_strk_new(size_t initial_capacity, mht_free_fn *free_fn)
 {
-	return mht_new(initial_capacity, free_fn, mht_strk_hash,
-		mht_strk_equals);
+	struct mht_hooks hooks;
+
+	hooks.free = free_fn;
+	hooks.hash = mht_strk_hash;
+	hooks.equals = mht_strk_equals;
+	return mht_new(initial_capacity, &hooks);
 }
 
 struct mht *mht_ptrk_new(size_t initial_capacity, mht_free_fn *free_fn)
 {
-	return mht_new(initial_capacity, free_fn, mht_ptrk_hash,
-		mht_ptrk_equals);
+	struct mht_hooks hooks;
+
+	hooks.free = free_fn;
+	hooks.hash = mht_ptrk_hash;
+	hooks.equals = mht_ptrk_equals;
+	return mht_new(initial_capacity, &hooks);
 }
 
 static struct mht_ent *mht_search_bucket(struct mht *t, size_t idx, void *k)
@@ -100,7 +105,7 @@ static struct mht_ent *mht_search_bucket(struct mht *t, size_t idx, void *k)
 	struct mht_ent *e;
 
 	for (e = t->table[idx]; e; e = e->next) {
-		if (t->equals_fn(e->k, k)) return e;
+		if (t->hooks.equals(e->k, k)) return e;
 	}
 	return 0;
 }
@@ -110,7 +115,7 @@ int mht_get(struct mht *t, void *k, void **v)
 	size_t idx;
 	struct mht_ent *e;
 
-	idx = t->hash_fn(k) % t->capacity;
+	idx = t->hooks.hash(k) % t->capacity;
 	e = mht_search_bucket(t, idx, k);
 	if (!e) return -1;
 	*v = e->v;
@@ -125,11 +130,11 @@ int mht_set(struct mht *t, void *k, void *v, int overwrite)
 	if (t->size >= t->capacity * t->load_factor) {
 		if (mht_rehash(t, t->capacity * 2)) return -1;
 	}
-	idx = t->hash_fn(k) % t->capacity;
+	idx = t->hooks.hash(k) % t->capacity;
 	e = mht_search_bucket(t, idx, k);
 	if (e) {
 		if (!overwrite) return 0;
-		if (t->free_fn) t->free_fn(e->k, e->v);
+		if (t->hooks.free) t->hooks.free(e->k, e->v);
 		e->k = k;
 		e->v = v;
 		return 0;
@@ -153,10 +158,10 @@ void mht_delete(struct mht *t, void *k)
 	size_t idx;
 	struct mht_ent *e;
 
-	idx = t->hash_fn(k) % t->capacity;
+	idx = t->hooks.hash(k) % t->capacity;
 	e = mht_search_bucket(t, idx, k);
 	if (!e) return;
-	if (t->free_fn) t->free_fn(e->k, e->v);
+	if (t->hooks.free) t->hooks.free(e->k, e->v);
 	if (e->next) e->next->prev = e->prev;
 	if (e->prev) e->prev->next = e->next;
 	else t->table[idx] = e->next;
@@ -197,7 +202,7 @@ void mht_free(struct mht *t)
 		if (!t->table[i]) continue;
 		for (e = t->table[i]; e; e = next_e) {
 			next_e = e->next;
-			if (t->free_fn) t->free_fn(e->k, e->v);
+			if (t->hooks.free) t->hooks.free(e->k, e->v);
 			free(e);
 		}
 	}
