@@ -1,7 +1,7 @@
 /*****************************************************************************
  * mht.c
  * Version 1.0
- * Minimal hashtable implementation using separate chaining
+ * Mark's hashtable implementation using separate chaining
  * Mark Swoope (markswoope@outlook.com)
  * February 8, 2016
  *
