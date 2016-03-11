@@ -27,14 +27,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct mht_ent {
+struct mht_entry {
 	void *k;
 	void *v;
-	struct mht_ent *next;
-	struct mht_ent *prev;
+	struct mht_entry *next;
+	struct mht_entry *prev;
 };
 
-typedef void (mht_free_fn)(void *k, void *v);
+typedef void (mht_free_fn)(struct mht_entry *ent);
 typedef unsigned long int (mht_hash_fn)(const void *k);
 typedef int (mht_equals_fn)(const void *k1, const void *k2);
 
@@ -46,23 +46,23 @@ struct mht_hooks {
 
 struct mht {
 	double load_factor;
-	size_t capacity;
-	size_t size;
-	struct mht_ent **table;
+	unsigned int capacity;
+	unsigned int size;
+	struct mht_entry **table;
 	struct mht_hooks hooks;
 };
 
 #define mht_size(T)	((T)->size)
 #define mht_capacity(T)	((T)->capacity)
 
-struct mht *mht_new(size_t initial_capacity, const struct mht_hooks *hooks);
-struct mht *mht_strk_new(size_t initial_capacity, mht_free_fn *free_fn);
-struct mht *mht_ptrk_new(size_t initial_capacity, mht_free_fn *free_fn);
+struct mht *mht_new(unsigned int initial_capacity, const struct mht_hooks *hooks);
+struct mht *mht_strk_new(unsigned int initial_capacity, mht_free_fn *free_fn);
+struct mht *mht_ptrk_new(unsigned int initial_capacity, mht_free_fn *free_fn);
 void mht_free(struct mht *t);
-int mht_set(struct mht *t, void *k, void *v, int overwrite);
-int mht_get(struct mht *t, void *k, void **v);
-void mht_delete(struct mht *t, void *k);
-int mht_rehash(struct mht *t, size_t new_capacity);
+struct mht_entry *mht_get(struct mht *t, void *k);
+int mht_put(struct mht *t, void *k, void *v);
+void mht_delete(struct mht *t, struct mht_entry *entry);
+int mht_rehash(struct mht *t, unsigned int new_capacity);
 
 #endif
 
