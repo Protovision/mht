@@ -77,6 +77,9 @@ struct mh *mh_strk_new(unsigned int initial_capacity, mh_free_fn *free_fn);
 // Create new hashtable with pointer keys
 struct mh *mh_ptrk_new(unsigned int initial_capacity, mh_free_fn *free_fn);
 
+// Clear hashtable
+void mh_clear(struct mh *t);
+
 // Free hashtable
 void mh_free(struct mh *t);
 

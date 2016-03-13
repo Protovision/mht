@@ -216,18 +216,28 @@ int mh_realloc(struct mh *t, unsigned int new_capacity)
 	return 0;
 }
 
-void mh_free(struct mh *t)
+void mh_clear(struct mh *t)
 {
-	struct mh_bucket *b;
+	struct mh_bucket *b, *next_b;
 	struct mh_entry *e, *next_e;
 
-	for (b = t->buckets; b; b = b->next) {
+	for (b = t->buckets; b; b = next_b) {
+		next_b = b->next;
 		for (e = b->entries; e; e = next_e) {
 			next_e = e->next;
 			if (t->hooks.free) t->hooks.free(e);
 			free(e);
 		}
+		b->entries = 0;
+		b->prev = b->next = 0;
 	}
+	t->buckets = 0;
+	t->size = 0;
+}
+
+void mh_free(struct mh *t)
+{
+	mh_clear(t);
 	free(t->table);
 	free(t);
 }
