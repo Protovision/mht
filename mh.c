@@ -123,7 +123,7 @@ static void mh_put_entry(struct mh *t, struct mh_entry *e)
 {
 	struct mh_bucket *b;
 
-	b = &t->table[e->idx];
+	b = e->bucket;
 	e->prev = 0;
 	e->next = b->entries;
 	b->entries = e;
@@ -159,7 +159,7 @@ int mh_put(struct mh *t, void *k, void *v)
 	}
 	e = (struct mh_entry*)malloc(sizeof(struct mh_entry));
 	if (!e) return -1;
-	e->idx = idx;
+	e->bucket = b;
 	e->k = k;
 	e->v = v;
 	mh_put_entry(t, e);
@@ -174,7 +174,7 @@ void mh_delete(struct mh *t, struct mh_entry *e)
 	if (e->next) e->next->prev = e->prev;
 	if (e->prev) e->prev->next = e->next;
 	else {
-		b = &t->table[e->idx];
+		b = e->bucket;
 		b->entries = e->next;
 		if (!b->entries) {
 			if (b->next) b->next->prev = b->prev;
@@ -207,7 +207,8 @@ int mh_rehash(struct mh *t, unsigned int new_capacity)
 	for (b = old_buckets; b; b = b->next) {
 		for (e = b->entries; e; e = next_e) {
 			next_e = e->next;
-			e->idx = t->hooks.hash(e->k) % new_capacity;
+			idx = t->hooks.hash(e->k) % t->capacity;
+			e->bucket = t->table + idx;
 			mh_put_entry(t, e);
 		}
 	}
@@ -248,3 +249,24 @@ int mh_traverse(struct mh *t, mh_traverse_fn *callback, void *udata)
 	return 0;
 }
 
+struct mh_entry *mh_first(struct mh *t)
+{
+	if (!t->buckets) return 0;
+	return t->buckets->entries;
+}
+
+struct mh_entry *mh_next(struct mh_entry *e)
+{
+	if (e->next) return e->next;
+	if (e->bucket->next) 
+		return e->bucket->next->entries;
+	return 0;
+}
+
+struct mh_entry *mh_prev(struct mh_entry *e)
+{
+	if (e->prev) return e->prev;
+	if (e->bucket->prev)
+		return e->bucket->prev->entries;
+	return 0;
+}

@@ -28,10 +28,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+struct mh_bucket;
+
 struct mh_entry {
-	unsigned int idx;	// Each entry knows it's table index,
-				// therefore entry pointers remain valid
-				// even after a table rehash.
+	struct mh_bucket *bucket;	// Each entry knows it's bucket owner
+					// therefore entry pointers remain
+					// valid even after a table rehash.
 	void *k;		// Key.
 	void *v;		// Value.
 	struct mh_entry *prev;	// Previous entry.
@@ -98,6 +100,11 @@ typedef int (mh_traverse_fn)(struct mh *t, struct mh_entry *entry,
 
 // Traverse all entries in hashtable
 int mh_traverse(struct mh *t, mh_traverse_fn *callback, void *udata);
+
+// Walk through hashtable entries incrementally
+struct mh_entry *mh_first(struct mh *t);
+struct mh_entry *mh_next(struct mh_entry *e);
+struct mh_entry *mh_prev(struct mh_entry *e);
 
 #endif
 
