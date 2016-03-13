@@ -104,7 +104,6 @@ int mh_traverse(struct mh *t, mh_traverse_fn *callback, void *udata);
 // Walk through hashtable entries incrementally
 struct mh_entry *mh_first(struct mh *t);
 struct mh_entry *mh_next(struct mh_entry *e);
-struct mh_entry *mh_prev(struct mh_entry *e);
 
 #endif
 
