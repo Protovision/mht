@@ -1,9 +1,9 @@
 /*****************************************************************************
  * mh.c
  * Version 1.0
- * Mark's hashtable implementation using separate chaining
+ * Mark's traversable hashtable using separate chaining
  * Mark Swoope (markswoope@outlook.com)
- * February 8, 2016
+ * March 12, 2016
  *
  * Copyright (c) 2016, Mark Swoope
  * 
