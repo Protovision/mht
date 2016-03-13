@@ -91,6 +91,8 @@ void mh_delete(struct mh *t, struct mh_entry *entry);
 // Reallocate and rehash hashtable
 int mh_rehash(struct mh *t, unsigned int new_capacity);
 
+// Hashtable traversal callback.
+// Returns non-zero to stop traversing early
 typedef int (mh_traverse_fn)(struct mh *t, struct mh_entry *entry,
 	void *udata);
 
