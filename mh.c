@@ -265,8 +265,13 @@ struct mh_entry *mh_next(struct mh_entry *e)
 
 struct mh_entry *mh_prev(struct mh_entry *e)
 {
+	struct mh_entry *ent, *ent_next;
+
 	if (e->prev) return e->prev;
-	if (e->bucket->prev)
-		return e->bucket->prev->entries;
+	if (e->bucket->prev) {
+		for (ent = e->bucket->prev->entries; ent->next;
+			ent = ent->next);
+		return ent;
+	}
 	return 0;
 }
