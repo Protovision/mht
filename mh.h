@@ -90,7 +90,7 @@ int mh_put(struct mh *t, void *k, void *v);
 void mh_delete(struct mh *t, struct mh_entry *entry);
 
 // Reallocate and rehash hashtable
-int mh_rehash(struct mh *t, unsigned int new_capacity);
+int mh_realloc(struct mh *t, unsigned int new_capacity);
 
 // Hashtable traversal callback.
 // Returns non-zero to stop traversing early

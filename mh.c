@@ -146,7 +146,7 @@ int mh_put(struct mh *t, void *k, void *v)
 	struct mh_bucket *b;
 
 	if (t->size >= t->capacity * t->load_factor) {
-		if (mh_rehash(t, t->capacity * 2)) return -1;
+		if (mh_realloc(t, t->capacity * 2)) return -1;
 	}
 	idx = t->hooks.hash(k) % t->capacity;
 	b = &t->table[idx];
@@ -188,7 +188,7 @@ void mh_delete(struct mh *t, struct mh_entry *e)
 	--t->size;
 }
 
-int mh_rehash(struct mh *t, unsigned int new_capacity)
+int mh_realloc(struct mh *t, unsigned int new_capacity)
 {
 	struct mh_bucket *b;
 	struct mh_entry *e, *next_e;
