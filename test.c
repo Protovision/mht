@@ -40,6 +40,23 @@ void populate_table(struct mh *table)
 	fclose(f);
 }
 
+void test_traversal(struct mh *t)
+{
+	unsigned int n;
+	struct mh_entry *e;
+
+	n = 0;
+	e = mh_first(t);
+	assert(e != 0);
+	while (e) {
+		printf("%s -> %s\n", (char*)e->k, (char*)e->v);
+		e = mh_next(e);
+		++n;
+		if (!e) break;
+	}
+	assert(n == 52);
+}
+
 void test_size(struct mh *t)
 {
 	assert(mh_size(t) == 52);
@@ -117,6 +134,7 @@ int main()
 	t = mh_strk_new(8, free_table_entry);
 	populate_table(t);
 
+	test_traversal(t);
 	test_size(t);
 	test_capacity(t);
 	test_get(t);
