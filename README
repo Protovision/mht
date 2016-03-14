@@ -1,5 +1,14 @@
 Mark's hashtable
 
+I needed to make a normal hashtable because all other implementations are either:
+
+* Bloated (packaged with the rest of a really big library)
+* Language abusive (Messes with the preprocessor too much)
+* Functionally limited (Only string keys allowed)
+* Badly designed (Really weird and long function names)
+
+This implementation includes:
+
 * Separate chaining collision resolution strategy
 * Non-empty buckets are linked for fast traversal of entries
 * References to entries remain valid even after a table resize/rehash
