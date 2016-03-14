@@ -7,11 +7,12 @@ I needed to make a normal hashtable because all other implementations are either
 * Functionally limited (Only string keys allowed)
 * Badly designed (Really weird and long function names)
 
-This implementation includes:
+This implementation features:
 
 * Separate chaining collision resolution strategy
 * Non-empty buckets are linked for fast traversal of entries
 * References to entries remain valid even after a table resize/rehash
+* Table automatically grows proportional to a load factor
 * Uses only libc
 
 Supported hashtable operations:
