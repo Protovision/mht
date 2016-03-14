@@ -6,8 +6,7 @@ Mark's hashtable
 * References to entries remain valid even after a table resize/rehash
 * Uses only libc
 
-Supported hashtable operations
-------------------------------
+### Supported hashtable operations
 
 * Insert key/value pair
 * Lookup entry from key
