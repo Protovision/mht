@@ -45,8 +45,14 @@ struct mh_bucket {
 	struct mh_bucket *next;		// Next non-empty bucket.
 };
 
+// Called every time an entry is being deleted
+// This function should only touch the k and v fields
 typedef void (mh_free_fn)(struct mh_entry *entry);
+
+// Hash function returns unique value for k
 typedef unsigned long int (mh_hash_fn)(const void *k);
+
+// Returns non-zero if k1 and k2 are equal
 typedef int (mh_equals_fn)(const void *k1, const void *k2);
 
 struct mh_hooks {
