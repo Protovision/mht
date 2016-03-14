@@ -1,12 +1,14 @@
 Mark's hashtable
 ================
 
+Features:
+
 * Separate chaining collision resolution strategy
 * Non-empty buckets are linked for fast traversal of entries
 * References to entries remain valid even after a table resize/rehash
 * Uses only libc
 
-### Supported hashtable operations
+Supported hashtable operations:
 
 * Insert key/value pair
 * Lookup entry from key
