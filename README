@@ -1,7 +1,0 @@
-Mark's hashtable
-================
-
-* Separate chaining collision resolution strategy
-* Non-empty buckets are linked for fast traversal
-* References to table entries remain valid even after a table resize/rehash
-* Uses only libc
