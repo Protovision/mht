@@ -100,12 +100,14 @@ struct mh *mh_ptrk_new(unsigned int initial_capacity, mh_free_fn *free_fn)
 	return mh_new(initial_capacity, &hooks);
 }
 
-static struct mh_entry *mh_search_bucket(struct mh *t,
-	struct mh_bucket *bucket, void *k)
+static struct mh_entry *mh_bucket_get(struct mh *t,
+	unsigned int idx, void *k)
 {
 	struct mh_entry *e;
+	struct mh_bucket *b;
 
-	for (e = bucket->entries; e; e = e->next) {
+	b = t->table + idx;
+	for (e = b->entries; e; e = e->next) {
 		if (t->hooks.equals(e->k, k)) return e;
 	}
 	return 0;
@@ -116,14 +118,15 @@ struct mh_entry *mh_get(struct mh *t, void *k)
 	unsigned int idx;
 
 	idx = t->hooks.hash(k) % t->capacity;
-	return mh_search_bucket(t, &t->table[idx], k);
+	return mh_bucket_get(t, idx, k);
 }
 
-static void mh_put_entry(struct mh *t, struct mh_entry *e)
+static void mh_bucket_put(struct mh *t, unsigned int idx, struct mh_entry *e)
 {
 	struct mh_bucket *b;
-
-	b = e->bucket;
+	
+	b = t->table + idx;
+	e->bucket = b;
 	e->prev = 0;
 	e->next = b->entries;
 	b->entries = e;
@@ -143,14 +146,12 @@ int mh_put(struct mh *t, void *k, void *v)
 {
 	unsigned int idx;
 	struct mh_entry *e;
-	struct mh_bucket *b;
 
 	if (t->size >= t->capacity * t->load_factor) {
 		if (mh_realloc(t, t->capacity * 2)) return -1;
 	}
 	idx = t->hooks.hash(k) % t->capacity;
-	b = &t->table[idx];
-	e = mh_search_bucket(t, b, k);
+	e = mh_bucket_get(t, idx, k);
 	if (e) {
 		if (t->hooks.free) t->hooks.free(e);
 		e->k = k;
@@ -159,10 +160,9 @@ int mh_put(struct mh *t, void *k, void *v)
 	}
 	e = (struct mh_entry*)malloc(sizeof(struct mh_entry));
 	if (!e) return -1;
-	e->bucket = b;
 	e->k = k;
 	e->v = v;
-	mh_put_entry(t, e);
+	mh_bucket_put(t, idx, e);
 	return 0;
 }
 
@@ -208,8 +208,7 @@ int mh_realloc(struct mh *t, unsigned int new_capacity)
 		for (e = b->entries; e; e = next_e) {
 			next_e = e->next;
 			idx = t->hooks.hash(e->k) % t->capacity;
-			e->bucket = t->table + idx;
-			mh_put_entry(t, e);
+			mh_bucket_put(t, idx, e);
 		}
 	}
 	free(old_table);
