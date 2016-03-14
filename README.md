@@ -10,7 +10,7 @@ Features:
 
 Supported hashtable operations:
 
-* Insert key/value pair
+* Insert new entry with key/value pair
 * Lookup entry from key
 * Delete entry
 * Clear all entries
