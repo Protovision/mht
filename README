@@ -1,7 +1,4 @@
 Mark's hashtable
-================
-
-Features:
 
 * Separate chaining collision resolution strategy
 * Non-empty buckets are linked for fast traversal of entries
