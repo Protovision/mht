@@ -25,7 +25,7 @@ struct mh *mh_new(unsigned int initial_capacity, const struct mh_hooks *hooks)
 {
 	struct mh *t;
 
-	t = (struct mh*)malloc(sizeof(struct mh));
+	t = (struct mh*)calloc(1, sizeof(struct mh));
 	if (!t) return 0;
 	t->table = (struct mh_bucket*)calloc(initial_capacity,
 		sizeof(struct mh_bucket));
