@@ -96,7 +96,7 @@ struct mh_entry *mh_get(struct mh *t, void *k);
 int mh_put(struct mh *t, void *k, void *v);
 
 // Delete hashtable entry
-void mh_delete(struct mh *t, struct mh_entry *entry);
+void mh_del(struct mh *t, struct mh_entry *entry);
 
 // Reallocate and rehash hashtable
 int mh_realloc(struct mh *t, unsigned int new_capacity);

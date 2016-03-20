@@ -106,12 +106,12 @@ void test_delete(struct mh *t)
 
 	e = mh_get(t, "Michigan");
 	assert(e != 0);
-	mh_delete(t, e);
+	mh_del(t, e);
 	e = mh_get(t, "Michigan");
 	assert(e == 0);
 	e = mh_get(t, "California");
 	assert(e != 0);
-	mh_delete(t, e);
+	mh_del(t, e);
 	e = mh_get(t, "California");
 	assert(e == 0);
 }
@@ -131,7 +131,7 @@ int main()
 	struct mh *t;
 	struct mh_entry *e;
 
-	t = mh_strk_new(8, free_table_entry);
+	t = mh_strk_new(256, free_table_entry);
 	populate_table(t);
 
 	test_traversal(t);

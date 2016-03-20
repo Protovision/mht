@@ -166,7 +166,7 @@ int mh_put(struct mh *t, void *k, void *v)
 	return 0;
 }
 
-void mh_delete(struct mh *t, struct mh_entry *e)
+void mh_del(struct mh *t, struct mh_entry *e)
 {
 	struct mh_bucket *b;
 	
