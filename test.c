@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
-void free_table_entry(struct mh_entry *e)
+void free_table_entry(void *k, void *v)
 {
-	free(e->k);
-	free(e->v);
+	free(*(char**)k);
+	free(*(char**)v);
 }
 
 char *strclone(const char *str)
@@ -20,12 +20,13 @@ char *strclone(const char *str)
 	return p;
 }
 
-void populate_table(struct mh *table)
+void populate_table(MH *table)
 {
 	FILE *f;
 	static char line[512];
-	char *rank, *state, *postal, *pop;
+	char *rank, *state, *postal, *pop, *k, *v;
 
+	printf("Populating table...\n");
 	f = fopen("2014_usa_states.csv", "rb");
 	fgets(line, 512, f);
 	for (;;) {
@@ -35,21 +36,24 @@ void populate_table(struct mh *table)
 		postal = strtok(0, ",\r\n");
 		pop = strtok(0, ",\r\n");
 		if (state == 0 || pop == 0) break;
-		mh_put(table, strclone(state), strclone(pop));
+		k = strclone(state);
+		v = strclone(pop);
+		mh_put(table, &k, &v);
 	}
 	fclose(f);
 }
 
-void test_traversal(struct mh *t)
+void test_traversal(MH *t)
 {
 	unsigned int n;
-	struct mh_entry *e;
-
+	MH_ENT *e;
+	
+	printf("Testing traversal...\n");
 	n = 0;
 	e = mh_first(t);
 	assert(e != 0);
 	while (e) {
-		printf("%s -> %s\n", (char*)e->k, (char*)e->v);
+		printf("%s -> %s\n", *(char**)mh_key(t, e), *(char**)mh_val(t, e));
 		e = mh_next(e);
 		++n;
 		if (!e) break;
@@ -57,81 +61,103 @@ void test_traversal(struct mh *t)
 	assert(n == 52);
 }
 
-void test_size(struct mh *t)
+void test_size(MH *t)
 {
-	assert(mh_size(t) == 52);
+	printf("Testing len...\n");
+	assert(mh_len(t) == 52);
 }
 
-void test_capacity(struct mh *t)
+void test_capacity(MH *t)
 {
-	assert(mh_capacity(t) >= t->size * t->load_factor);
+	printf("Testing capacity...\n");
+	assert(mh_cap(t) >= t->len * t->load);
 }
 
-void test_get(struct mh *t)
+void test_get(MH *t)
 {
-	struct mh_entry *e;
+	MH_ENT *e;
+	const char *key;
 
-	e = mh_get(t, "Florida");
+	printf("Testing get...\n");
+	key = "Florida";
+	e = mh_get(t, &key);
 	assert(e != 0);
-	assert(strcmp((char*)e->k, "Florida") == 0);
-	assert(strcmp((char*)e->v, "19893297.0") == 0);
+	assert(strcmp(*(char**)mh_key(t, e), "Florida") == 0);
+	assert(strcmp(*(char**)mh_val(t, e), "19893297.0") == 0);
 
-	e = mh_get(t, "California");
+	key = "California";
+	e = mh_get(t, &key);
 	assert(e != 0);
-	assert(strcmp((char*)e->k, "California") == 0);
-	assert(strcmp((char*)e->v, "38802500.0") == 0);
+	assert(strcmp(*(char**)mh_key(t, e), "California") == 0);
+	assert(strcmp(*(char**)mh_val(t, e), "38802500.0") == 0);
 
-	e = mh_get(t, "Hawaii");
+	key = "Hawaii";
+	e = mh_get(t, &key);
 	assert(e != 0);
-	assert(strcmp((char*)e->k, "Hawaii") == 0);
-	assert(strcmp((char*)e->v, "1419561.0") == 0);
+	assert(strcmp(*(char**)mh_key(t, e), "Hawaii") == 0);
+	assert(strcmp(*(char**)mh_val(t, e), "1419561.0") == 0);
 }
 
-void test_put(struct mh *t)
+void test_put(MH *t)
 {
-	struct mh_entry *e;
+	MH_ENT *e;
+	const char *k, *v;
 
-	assert(mh_put(t, strclone("foo"), strclone("bar")) == 0);
-	assert(mh_put(t, strclone("horse"), strclone("shoe")) == 0);
-	assert(mh_put(t, strclone("male"), strclone("female")) == 0);
-	e = mh_get(t, "horse");
+	printf("Testing put...\n");
+	k = strclone("foo");
+	v = strclone("bar");
+	assert(mh_put(t, &k, &v));
+	k = strclone("horse");
+	v = strclone("shoe");
+	assert(mh_put(t, &k, &v));
+	k = strclone("male");
+	v = strclone("female");
+	assert(mh_put(t, &k, &v));
+	k = "horse";
+	e = mh_get(t, &k); 
 	assert(e != 0);
-	assert(strcmp((char*)e->k, "horse") == 0);
-	assert(strcmp((char*)e->v, "shoe") == 0);
+	assert(strcmp(*(char**)mh_key(t, e), "horse") == 0);
+	assert(strcmp(*(char**)mh_val(t, e), "shoe") == 0);
 }
 
-void test_delete(struct mh *t)
+void test_delete(MH *t)
 {
-	struct mh_entry *e;
-
-	e = mh_get(t, "Michigan");
+	MH_ENT *e;
+	const char *k;
+	
+	printf("Testing delete...\n");
+	k = "Michigan";
+	e = mh_get(t, &k);
 	assert(e != 0);
 	mh_del(t, e);
-	e = mh_get(t, "Michigan");
+	e = mh_get(t, &k);
 	assert(e == 0);
-	e = mh_get(t, "California");
+	k = "California";
+	e = mh_get(t, &k);
 	assert(e != 0);
 	mh_del(t, e);
-	e = mh_get(t, "California");
+	e = mh_get(t, &k);
 	assert(e == 0);
 }
 
-void test_clear(struct mh *t)
+void test_clear(MH *t)
 {
-	struct mh_entry *e;
+	MH_ENT *e;
+	const char *k;
 
+	printf("Testing clear...\n");
 	mh_clear(t);
-	assert(mh_size(t) == 0);
-	e = mh_get(t, "New York");
+	assert(mh_len(t) == 0);
+	k = "New York";
+	e = mh_get(t, &k);
 	assert(e == 0);
 }
 
 int main()
 {
-	struct mh *t;
-	struct mh_entry *e;
+	MH *t;
 
-	t = mh_strk_new(256, free_table_entry);
+	t = mh_strk_new(sizeof(char*), 256, free_table_entry);
 	populate_table(t);
 
 	test_traversal(t);
